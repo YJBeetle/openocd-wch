@@ -559,6 +559,7 @@ static int davinci_write_page_ecc4(struct nand_device *nand, uint32_t page,
 static int davinci_write_page_ecc4infix(struct nand_device *nand, uint32_t page,
 	uint8_t *data, uint32_t data_size, uint8_t *oob, uint32_t oob_size)
 {
+	(void)(oob_size);
 	struct davinci_nand *info = nand->controller_priv;
 	struct target *target = nand->target;
 	const uint32_t fcr_addr = info->aemif + NANDFCR;

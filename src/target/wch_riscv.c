@@ -36,7 +36,8 @@ static int wch_riscv_flush_registers(struct target *target);
 };
 extern int write_flash_data(struct target *target, target_addr_t address,uint32_t size, uint32_t count, uint8_t *buffer);
 
-extern int wch_riscv_openocd_step(struct target *target, int current,
+
+extern int wch_riscv_openocd_step(struct target *target, int current,
 	target_addr_t address, int handle_breakpoints);
 static enum {
 	RO_NORMAL,
@@ -584,7 +585,7 @@ int wch_riscv_remove_breakpoint(struct target *target,
 		struct breakpoint *breakpoint)
 {
 	if (breakpoint->type == BKPT_SOFT) {
-		uint8_t buf[32];
+		// uint8_t buf[32];
 		
 
 		/* Write the original instruction. */
@@ -660,61 +661,61 @@ int wch_riscv_remove_watchpoint(struct target *target,
  * halted.  Sets *unique_id to the unique ID of that trigger. If *unique_id is
  * ~0, no match was found.
  */
-static int riscv_hit_trigger_hit_bit(struct target *target, uint32_t *unique_id)
-{
-	RISCV_INFO(r);
+// static int riscv_hit_trigger_hit_bit(struct target *target, uint32_t *unique_id)
+// {
+// 	RISCV_INFO(r);
 
-	riscv_reg_t tselect;
-	if (riscv_get_register(target, &tselect, GDB_REGNO_TSELECT) != ERROR_OK)
-		return ERROR_FAIL;
+// 	riscv_reg_t tselect;
+// 	if (riscv_get_register(target, &tselect, GDB_REGNO_TSELECT) != ERROR_OK)
+// 		return ERROR_FAIL;
 
-	*unique_id = ~0;
-	for (unsigned int i = 0; i < r->trigger_count; i++) {
-		if (r->trigger_unique_id[i] == -1)
-			continue;
+// 	*unique_id = ~0;
+// 	for (unsigned int i = 0; i < r->trigger_count; i++) {
+// 		if (r->trigger_unique_id[i] == -1)
+// 			continue;
 
-		if (riscv_set_register(target, GDB_REGNO_TSELECT, i) != ERROR_OK)
-			return ERROR_FAIL;
+// 		if (riscv_set_register(target, GDB_REGNO_TSELECT, i) != ERROR_OK)
+// 			return ERROR_FAIL;
 
-		uint64_t tdata1;
-		if (riscv_get_register(target, &tdata1, GDB_REGNO_TDATA1) != ERROR_OK)
-			return ERROR_FAIL;
-		int type = get_field(tdata1, CSR_TDATA1_TYPE(riscv_xlen(target)));
+// 		uint64_t tdata1;
+// 		if (riscv_get_register(target, &tdata1, GDB_REGNO_TDATA1) != ERROR_OK)
+// 			return ERROR_FAIL;
+// 		int type = get_field(tdata1, CSR_TDATA1_TYPE(riscv_xlen(target)));
 
-		uint64_t hit_mask = 0;
-		switch (type) {
-			case 1:
-				/* Doesn't support hit bit. */
-				break;
-			case 2:
-				hit_mask = CSR_MCONTROL_HIT;
-				break;
-			case 6:
-				hit_mask = CSR_MCONTROL6_HIT;
-				break;
-			default:
-				LOG_DEBUG("trigger %d has unknown type %d", i, type);
-				continue;
-		}
+// 		uint64_t hit_mask = 0;
+// 		switch (type) {
+// 			case 1:
+// 				/* Doesn't support hit bit. */
+// 				break;
+// 			case 2:
+// 				hit_mask = CSR_MCONTROL_HIT;
+// 				break;
+// 			case 6:
+// 				hit_mask = CSR_MCONTROL6_HIT;
+// 				break;
+// 			default:
+// 				LOG_DEBUG("trigger %d has unknown type %d", i, type);
+// 				continue;
+// 		}
 
-		/* Note: If we ever use chained triggers, then this logic needs
-		 * to be changed to ignore triggers that are not the last one in
-		 * the chain. */
-		if (tdata1 & hit_mask) {
-			LOG_DEBUG("Trigger %d (unique_id=%d) has hit bit set.", i, r->trigger_unique_id[i]);
-			if (riscv_set_register(target, GDB_REGNO_TDATA1, tdata1 & ~hit_mask) != ERROR_OK)
-				return ERROR_FAIL;
+// 		/* Note: If we ever use chained triggers, then this logic needs
+// 		 * to be changed to ignore triggers that are not the last one in
+// 		 * the chain. */
+// 		if (tdata1 & hit_mask) {
+// 			LOG_DEBUG("Trigger %d (unique_id=%d) has hit bit set.", i, r->trigger_unique_id[i]);
+// 			if (riscv_set_register(target, GDB_REGNO_TDATA1, tdata1 & ~hit_mask) != ERROR_OK)
+// 				return ERROR_FAIL;
 
-			*unique_id = r->trigger_unique_id[i];
-			break;
-		}
-	}
+// 			*unique_id = r->trigger_unique_id[i];
+// 			break;
+// 		}
+// 	}
 
-	if (riscv_set_register(target, GDB_REGNO_TSELECT, tselect) != ERROR_OK)
-		return ERROR_FAIL;
+// 	if (riscv_set_register(target, GDB_REGNO_TSELECT, tselect) != ERROR_OK)
+// 		return ERROR_FAIL;
 
-	return ERROR_OK;
-}
+// 	return ERROR_OK;
+// }
 
 
 
@@ -1654,7 +1655,7 @@ static int riscv_checksum_memory(struct target *target,
 
 /*** OpenOCD Helper Functions ***/
 
- static enum riscv_poll_hart {
+enum riscv_poll_hart {
 	RPH_NO_CHANGE,
 	RPH_DISCOVERED_HALTED,
 	RPH_DISCOVERED_RUNNING,
@@ -2887,141 +2888,141 @@ static int riscv_resume_go_all_harts(struct target *target)
  *   return true iff we are guaranteed that the register will read the same
  *       value in the future as the value we just read.
  */
-static bool gdb_regno_cacheable(enum gdb_regno regno, bool write)
-{
-	/* GPRs, FPRs, vector registers are just normal data stores. */
-	if (regno <= GDB_REGNO_XPR31 ||
-			(regno >= GDB_REGNO_FPR0 && regno <= GDB_REGNO_FPR31) ||
-			(regno >= GDB_REGNO_V0 && regno <= GDB_REGNO_V31))
-		return true;
+// static bool gdb_regno_cacheable(enum gdb_regno regno, bool write)
+// {
+// 	/* GPRs, FPRs, vector registers are just normal data stores. */
+// 	if (regno <= GDB_REGNO_XPR31 ||
+// 			(regno >= GDB_REGNO_FPR0 && regno <= GDB_REGNO_FPR31) ||
+// 			(regno >= GDB_REGNO_V0 && regno <= GDB_REGNO_V31))
+// 		return true;
 
-	/* Most CSRs won't change value on us, but we can't assume it about arbitrary
-	 * CSRs. */
-	switch (regno) {
-		case GDB_REGNO_DPC:
-			return true;
+// 	/* Most CSRs won't change value on us, but we can't assume it about arbitrary
+// 	 * CSRs. */
+// 	switch (regno) {
+// 		case GDB_REGNO_DPC:
+// 			return true;
 
-		case GDB_REGNO_VSTART:
-		case GDB_REGNO_VXSAT:
-		case GDB_REGNO_VXRM:
-		case GDB_REGNO_VLENB:
-		case GDB_REGNO_VL:
-		case GDB_REGNO_VTYPE:
-		case GDB_REGNO_MISA:
-		case GDB_REGNO_DCSR:
-		case GDB_REGNO_DSCRATCH0:
-		case GDB_REGNO_MSTATUS:
-		case GDB_REGNO_MEPC:
-		case GDB_REGNO_MCAUSE:
-		case GDB_REGNO_SATP:
-			/*
-			 * WARL registers might not contain the value we just wrote, but
-			 * these ones won't spontaneously change their value either. *
-			 */
-			return !write;
+// 		case GDB_REGNO_VSTART:
+// 		case GDB_REGNO_VXSAT:
+// 		case GDB_REGNO_VXRM:
+// 		case GDB_REGNO_VLENB:
+// 		case GDB_REGNO_VL:
+// 		case GDB_REGNO_VTYPE:
+// 		case GDB_REGNO_MISA:
+// 		case GDB_REGNO_DCSR:
+// 		case GDB_REGNO_DSCRATCH0:
+// 		case GDB_REGNO_MSTATUS:
+// 		case GDB_REGNO_MEPC:
+// 		case GDB_REGNO_MCAUSE:
+// 		case GDB_REGNO_SATP:
+// 			/*
+// 			 * WARL registers might not contain the value we just wrote, but
+// 			 * these ones won't spontaneously change their value either. *
+// 			 */
+// 			return !write;
 
-		case GDB_REGNO_TSELECT:	/* I think this should be above, but then it doesn't work. */
-		case GDB_REGNO_TDATA1:	/* Changes value when tselect is changed. */
-		case GDB_REGNO_TDATA2:  /* Changse value when tselect is changed. */
-		default:
-			return false;
-	}
-}
+// 		case GDB_REGNO_TSELECT:	/* I think this should be above, but then it doesn't work. */
+// 		case GDB_REGNO_TDATA1:	/* Changes value when tselect is changed. */
+// 		case GDB_REGNO_TDATA2:  /* Changse value when tselect is changed. */
+// 		default:
+// 			return false;
+// 	}
+// }
 
 
 
-static int register_get(struct reg *reg)
-{
-	riscv_reg_info_t *reg_info = reg->arch_info;
-	struct target *target = reg_info->target;
-	RISCV_INFO(r);
+// static int register_get(struct reg *reg)
+// {
+// 	riscv_reg_info_t *reg_info = reg->arch_info;
+// 	struct target *target = reg_info->target;
+// 	RISCV_INFO(r);
 
-	if (reg->number >= GDB_REGNO_V0 && reg->number <= GDB_REGNO_V31) {
-		if (!r->get_register_buf) {
-			LOG_ERROR("Reading register %s not supported on this RISC-V target.",
-					gdb_regno_name(reg->number));
-			return ERROR_FAIL;
-		}
+// 	if (reg->number >= GDB_REGNO_V0 && reg->number <= GDB_REGNO_V31) {
+// 		if (!r->get_register_buf) {
+// 			LOG_ERROR("Reading register %s not supported on this RISC-V target.",
+// 					gdb_regno_name(reg->number));
+// 			return ERROR_FAIL;
+// 		}
 
-		if (r->get_register_buf(target, reg->value, reg->number) != ERROR_OK)
-			return ERROR_FAIL;
-	} else {
-		uint64_t value;
-		int result = riscv_get_register(target, &value, reg->number);
-		if (result != ERROR_OK)
-			return result;
-		buf_set_u64(reg->value, 0, reg->size, value);
-	}
-	reg->valid = gdb_regno_cacheable(reg->number, false);
-	char *str = buf_to_hex_str(reg->value, reg->size);
-	LOG_DEBUG("[%s] read 0x%s from %s (valid=%d)", target_name(target),
-			str, reg->name, reg->valid);
-	free(str);
-	return ERROR_OK;
-}
+// 		if (r->get_register_buf(target, reg->value, reg->number) != ERROR_OK)
+// 			return ERROR_FAIL;
+// 	} else {
+// 		uint64_t value;
+// 		int result = riscv_get_register(target, &value, reg->number);
+// 		if (result != ERROR_OK)
+// 			return result;
+// 		buf_set_u64(reg->value, 0, reg->size, value);
+// 	}
+// 	reg->valid = gdb_regno_cacheable(reg->number, false);
+// 	char *str = buf_to_hex_str(reg->value, reg->size);
+// 	LOG_DEBUG("[%s] read 0x%s from %s (valid=%d)", target_name(target),
+// 			str, reg->name, reg->valid);
+// 	free(str);
+// 	return ERROR_OK;
+// }
 
-static int register_set(struct reg *reg, uint8_t *buf)
-{
-	riscv_reg_info_t *reg_info = reg->arch_info;
-	struct target *target = reg_info->target;
-	RISCV_INFO(r);
+// static int register_set(struct reg *reg, uint8_t *buf)
+// {
+// 	riscv_reg_info_t *reg_info = reg->arch_info;
+// 	struct target *target = reg_info->target;
+// 	RISCV_INFO(r);
 
-	char *str = buf_to_hex_str(buf, reg->size);
-	LOG_DEBUG("[%s] write 0x%s to %s (valid=%d)", target_name(target),
-			str, reg->name, reg->valid);
-	free(str);
+// 	char *str = buf_to_hex_str(buf, reg->size);
+// 	LOG_DEBUG("[%s] write 0x%s to %s (valid=%d)", target_name(target),
+// 			str, reg->name, reg->valid);
+// 	free(str);
 
-	/* Exit early for writing x0, which on the hardware would be ignored, and we
-	 * don't want to update our cache. */
-	if (reg->number == GDB_REGNO_ZERO)
-		return ERROR_OK;
+// 	/* Exit early for writing x0, which on the hardware would be ignored, and we
+// 	 * don't want to update our cache. */
+// 	if (reg->number == GDB_REGNO_ZERO)
+// 		return ERROR_OK;
 
-	memcpy(reg->value, buf, DIV_ROUND_UP(reg->size, 8));
-	reg->valid = gdb_regno_cacheable(reg->number, true);
+// 	memcpy(reg->value, buf, DIV_ROUND_UP(reg->size, 8));
+// 	reg->valid = gdb_regno_cacheable(reg->number, true);
 
-	if (reg->number == GDB_REGNO_TDATA1 ||
-			reg->number == GDB_REGNO_TDATA2) {
-		r->manual_hwbp_set = true;
-		/* When enumerating triggers, we clear any triggers with DMODE set,
-		 * assuming they were left over from a previous debug session. So make
-		 * sure that is done before a user might be setting their own triggers.
-		 */
-		if (riscv_enumerate_triggers(target) != ERROR_OK)
-			return ERROR_FAIL;
-	}
+// 	if (reg->number == GDB_REGNO_TDATA1 ||
+// 			reg->number == GDB_REGNO_TDATA2) {
+// 		r->manual_hwbp_set = true;
+// 		/* When enumerating triggers, we clear any triggers with DMODE set,
+// 		 * assuming they were left over from a previous debug session. So make
+// 		 * sure that is done before a user might be setting their own triggers.
+// 		 */
+// 		if (riscv_enumerate_triggers(target) != ERROR_OK)
+// 			return ERROR_FAIL;
+// 	}
 
-	if (reg->number >= GDB_REGNO_V0 && reg->number <= GDB_REGNO_V31) {
-		if (!r->set_register_buf) {
-			LOG_ERROR("Writing register %s not supported on this RISC-V target.",
-					gdb_regno_name(reg->number));
-			return ERROR_FAIL;
-		}
+// 	if (reg->number >= GDB_REGNO_V0 && reg->number <= GDB_REGNO_V31) {
+// 		if (!r->set_register_buf) {
+// 			LOG_ERROR("Writing register %s not supported on this RISC-V target.",
+// 					gdb_regno_name(reg->number));
+// 			return ERROR_FAIL;
+// 		}
 
-		if (r->set_register_buf(target, reg->number, reg->value) != ERROR_OK)
-			return ERROR_FAIL;
-	} else {
-		uint64_t value = buf_get_u64(buf, 0, reg->size);
-		if (riscv_set_register(target, reg->number, value) != ERROR_OK)
-			return ERROR_FAIL;
-	}
+// 		if (r->set_register_buf(target, reg->number, reg->value) != ERROR_OK)
+// 			return ERROR_FAIL;
+// 	} else {
+// 		uint64_t value = buf_get_u64(buf, 0, reg->size);
+// 		if (riscv_set_register(target, reg->number, value) != ERROR_OK)
+// 			return ERROR_FAIL;
+// 	}
 
-	return ERROR_OK;
-}
+// 	return ERROR_OK;
+// }
 
-static struct reg_arch_type riscv_reg_arch_type = {
-	.get = register_get,
-	.set = register_set
-};
+// static struct reg_arch_type riscv_reg_arch_type = {
+// 	.get = register_get,
+// 	.set = register_set
+// };
 
-static struct csr_info {
-	unsigned number;
-	const char *name;
-};
+// struct csr_info {
+// 	unsigned number;
+// 	const char *name;
+// };
 
-static int cmp_csr_info(const void *p1, const void *p2)
-{
-	return (int) (((struct csr_info *)p1)->number) - (int) (((struct csr_info *)p2)->number);
-}
+// static int cmp_csr_info(const void *p1, const void *p2)
+// {
+// 	return (int) (((struct csr_info *)p1)->number) - (int) (((struct csr_info *)p2)->number);
+// }
 
  
 

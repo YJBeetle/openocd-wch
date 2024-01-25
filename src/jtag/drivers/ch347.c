@@ -223,7 +223,7 @@ pCH347SetTimeout CH347SetTimeout;
 pCH347ReadData CH347ReadData;
 pCH347WriteData CH347WriteData;
 /* pCH347Jtag_INIT CH347Jtag_INIT; */
-#elif defined(__linux__)
+#else
 
 #include <jtag/drivers/libusb_helper.h>
 
@@ -234,18 +234,18 @@ bool ugOpen;
 unsigned long ugIndex;
 struct libusb_device_handle *ch347_handle;
 
-static const uint16_t ch347_vids[] = {0x1a86, 0};
-static const uint16_t ch347_pids[] = {0x55dd, 0};
+// static const uint16_t ch347_vids[] = {0x1a86, 0};
+// static const uint16_t ch347_pids[] = {0x55dd, 0};
 
-static uint32_t CH347OpenDevice(uint64_t iIndex)
-{
-	if (jtag_libusb_open(ch347_vids, ch347_pids,
-			     &ch347_handle, NULL) != ERROR_OK) {
-		return false;
-	} else {
-		return true;
-	}
-}
+// static uint32_t CH347OpenDevice(uint64_t iIndex)
+// {
+// 	if (jtag_libusb_open(ch347_vids, ch347_pids,
+// 			     &ch347_handle, NULL) != ERROR_OK) {
+// 		return false;
+// 	} else {
+// 		return true;
+// 	}
+// }
 
 static bool CH347WriteData(uint64_t iIndex, uint8_t *data, uint64_t *length)
 {
@@ -308,7 +308,7 @@ static bool CH347SWD_INIT(uint64_t iIndex, uint8_t iClockRate)
 	cmdBuf[i++] = iClockRate; /* JTAG clock speed */
 	i += 3;                   /* Reserved Bytes */
 
-	unsigned long mLength = i;
+	uint64_t mLength = i;
 	if (!CH347WriteData(iIndex, cmdBuf, &mLength) || (mLength != i))
 		return false;
 
@@ -352,7 +352,7 @@ static char *HexToString(uint8_t *buf, uint32_t size)
 static int CH347_Write(void *oBuffer, unsigned long *ioLength)
 {
 	int ret = -1;
-	unsigned long wlength = *ioLength, WI;
+	uint64_t wlength = *ioLength, WI;
 	if (*ioLength >= HW_TDO_BUF_SIZE)
 		wlength = HW_TDO_BUF_SIZE;
 	WI = 0;
@@ -363,7 +363,7 @@ static int CH347_Write(void *oBuffer, unsigned long *ioLength)
 			*ioLength = 0;
 			return false;
 		}
-		LOG_DEBUG_IO("(size=%lu, buf=[%s]) -> %" PRIu32, wlength,
+		LOG_DEBUG_IO("(size=%llu, buf=[%s]) -> %" PRIu32, wlength,
 			     HexToString((uint8_t *)oBuffer, wlength),
 			     (uint32_t)wlength);
 		WI += wlength;
@@ -389,7 +389,7 @@ static int CH347_Write(void *oBuffer, unsigned long *ioLength)
  */
 static int CH347_Read(void *oBuffer, unsigned long *ioLength)
 {
-	unsigned long rlength = *ioLength, WI;
+	uint64_t rlength = *ioLength, WI;
 	/* The maximum allowable reading for a single read is 4096B of data.
 	   If it exceeds the allowable reading limit, it will be calculated as
 	   4096B */
@@ -412,7 +412,7 @@ static int CH347_Read(void *oBuffer, unsigned long *ioLength)
 		else
 			rlength = *ioLength - WI;
 	}
-	LOG_DEBUG_IO("(size=%lu, buf=[%s]) -> %" PRIu32, WI,
+	LOG_DEBUG_IO("(size=%llu, buf=[%s]) -> %" PRIu32, WI,
 		     HexToString((uint8_t *)oBuffer, WI), (uint32_t)WI);
 	*ioLength = WI;
 	return true;
@@ -1185,7 +1185,7 @@ static bool Check_Speed(uint64_t iIndex, uint8_t iClockRate)
 	for (j = 0; j < 4; j++)
 		cmdBuf[i++] = ch347.TCK | ch347.TDI | ch347.TMS | ch347.TRST;
 
-	unsigned long int mLength = i;
+	uint64_t mLength = i;
 	if (!CH347WriteData(iIndex, cmdBuf, &mLength) || (mLength != i))
 		return false;
 
@@ -1378,7 +1378,7 @@ static PCH347_SWD_IO ch347_get_one_swd_io(void)
 
 static void ch347_swd_queue_flush(void)
 {
-	unsigned long mLength = ch347_swd_context.send_len;
+	uint64_t mLength = ch347_swd_context.send_len;
 	ch347_swd_context.send_buf[0] = (uint8_t)CH347_CMD_SWD;
 	ch347_swd_context.send_buf[1] = (uint8_t)(ch347_swd_context.send_len -
 						  CH347_CMD_HEADER);

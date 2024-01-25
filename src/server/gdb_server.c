@@ -2981,6 +2981,7 @@ static int gdb_query_packet(struct connection *connection,
 
 static bool gdb_handle_vcont_packet(struct connection *connection, const char *packet, int packet_size)
 {
+	(void)(packet_size);
 	struct gdb_connection *gdb_connection = connection->priv;
 	struct target *target = get_target_from_connection(connection);
 	const char *parse = packet;

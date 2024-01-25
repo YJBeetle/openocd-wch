@@ -183,7 +183,7 @@ struct ch32x_flash_bank {
 
 
 
-static int ch32x_mass_erase(struct flash_bank *bank);
+// static int ch32x_mass_erase(struct flash_bank *bank);
 static int ch32x_get_device_id(struct flash_bank *bank, uint32_t *device_id);
 static int ch32x_write_block(struct flash_bank *bank, const uint8_t *buffer,
 		uint32_t address, uint32_t count);
@@ -208,7 +208,7 @@ FLASH_BANK_COMMAND_HANDLER(ch32x_flash_bank_command)
 
 	return ERROR_OK;
 }
-static int get_ch32x_info(struct flash_bank *bank, char *buf, int buf_size)
+static int get_ch32x_info(struct flash_bank *bank, struct command_invocation *cmd)
 {
 	return ERROR_OK;
 }
@@ -406,7 +406,7 @@ static int ch32x_write_options(struct flash_bank *bank)
 
 	/* program option bytes */
 	for(int i=0;i<8;i++){
-		retval = target_read_u16(target, ch32_OB_RDP+ 16*i , pbuf[i]);
+		retval = target_read_u16(target, ch32_OB_RDP+ 16*i , &pbuf[i]);
 		if (retval != ERROR_OK)
 			return retval;
 	}
@@ -452,19 +452,20 @@ static int ch32x_protect_check(struct flash_bank *bank)
 	if (retval != ERROR_OK)
 		return retval;
 
-	for (int i = 0; i < bank->num_prot_blocks; i++)
+	for (unsigned int i = 0; i < bank->num_prot_blocks; i++)
 		bank->prot_blocks[i].is_protected = (protection & (1 << i)) ? 0 : 1;
 
 	return ERROR_OK;
 }
 
-static int ch32x_erase(struct flash_bank *bank, int first, int last)
+static int ch32x_erase(struct flash_bank *bank, unsigned int first, unsigned int last)
 {
 	
 	
 	struct target *target = bank->target;
-	int i;
-    uint32_t cr_reg; uint32_t sr_reg;
+	// int i;
+    uint32_t cr_reg;
+	// uint32_t sr_reg;
 	if (bank->target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
 		return ERROR_TARGET_NOT_HALTED;
@@ -511,7 +512,7 @@ static int ch32x_erase(struct flash_bank *bank, int first, int last)
 	return ERROR_OK;
 }
 
-static int ch32x_protect(struct flash_bank *bank, int set, int first, int last)
+static int ch32x_protect(struct flash_bank *bank, int set, unsigned int first, unsigned int last)
 {
 	
 	struct target *target = bank->target;
@@ -532,7 +533,7 @@ static int ch32x_protect(struct flash_bank *bank, int set, int first, int last)
 		return retval;
 	}
 
-	for (int i = first; i <= last; i++) {
+	for (unsigned int i = first; i <= last; i++) {
 		if (set)
 			ch32x_info->option_bytes.protection &= ~(1 << i);
 		else
@@ -546,11 +547,11 @@ static int ch32x_write_block(struct flash_bank *bank, const uint8_t *buffer,
 		uint32_t address, uint32_t count)
 {
 	
-	struct ch32x_flash_bank *ch32x_info = bank->driver_priv;
+	// struct ch32x_flash_bank *ch32x_info = bank->driver_priv;
 	struct target *target = bank->target;
-	uint32_t buffer_size = 16384;
+	// uint32_t buffer_size = 16384;
 	struct working_area *write_algorithm;
-	struct working_area *source;
+	// struct working_area *source;
 	struct reg_param reg_params[4];
 	struct armv7m_algorithm armv7m_info;
 	uint32_t basaddr=0x08000000;
@@ -573,7 +574,7 @@ static int ch32x_write_block(struct flash_bank *bank, const uint8_t *buffer,
 	
 	retval = target_write_buffer(target, write_algorithm->address,
 			sizeof(ch32x_flash_write_code) , ch32x_flash_write_code);
-	LOG_INFO("write_algorithm->address%x",write_algorithm->address);
+	LOG_INFO("write_algorithm->address%llx",write_algorithm->address);
 	if (retval != ERROR_OK) {
 		target_free_working_area(target, write_algorithm);
 		return retval;
@@ -625,7 +626,7 @@ static int ch32x_write_block(struct flash_bank *bank, const uint8_t *buffer,
 	}
 	if (retval == ERROR_FLASH_OPERATION_FAILED) {
 		LOG_ERROR("flash write failed at address 0x%"PRIx32,
-				buf_get_u32(reg_params[4].value, 0, 32));
+				buf_get_u32(reg_params[0].value, 0, 32));
 
 		if (buf_get_u32(reg_params[0].value, 0, 32) & FLASH_PGERR) {
 			LOG_ERROR("flash memory not erased before writing");
@@ -655,8 +656,8 @@ static int ch32x_write(struct flash_bank *bank, const uint8_t *buffer,
 {
 
 	struct target *target = bank->target;
-	uint8_t *new_buffer = NULL;
-    uint32_t choffset=offset;
+	// uint8_t *new_buffer = NULL;
+    // uint32_t choffset=offset;
 	if (bank->target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
 		return ERROR_TARGET_NOT_HALTED;
@@ -715,9 +716,9 @@ static int ch32x_get_device_id(struct flash_bank *bank, uint32_t *device_id)
 static int ch32x_get_flash_size(struct flash_bank *bank, uint16_t *flash_size_in_kb)
 {
 	struct target *target = bank->target;
-	uint32_t cpuid, flash_size_reg;
-    uint32_t temp;
-	int retval = target_read_u32(target, 0x1ffff7e0, flash_size_in_kb);	
+	// uint32_t cpuid, flash_size_reg;
+    // uint32_t temp;
+	int retval = target_read_u16(target, 0x1ffff7e0, flash_size_in_kb);	
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -734,7 +735,7 @@ static int ch32x_probe(struct flash_bank *bank)
 	uint32_t device_id;
 	int page_size;
 	uint32_t base_address = 0x08000000;
-  	uint32_t rid=0;
+  	// uint32_t rid=0;
 	ch32x_info->probed = 0;
 	ch32x_info->register_base = FLASH_REG_BASE_B0;
 	ch32x_info->user_data_offset = 10;
@@ -831,43 +832,43 @@ static int ch32x_auto_probe(struct flash_bank *bank)
 		return ERROR_OK;
 	return ch32x_probe(bank);
 }
-static int ch32x_mass_erase(struct flash_bank *bank)
-{
+// static int ch32x_mass_erase(struct flash_bank *bank)
+// {
 	
-	struct target *target = bank->target;
+// 	struct target *target = bank->target;
 
-	if (target->state != TARGET_HALTED) {
-		LOG_ERROR("Target not halted");
-		return ERROR_TARGET_NOT_HALTED;
-	}
+// 	if (target->state != TARGET_HALTED) {
+// 		LOG_ERROR("Target not halted");
+// 		return ERROR_TARGET_NOT_HALTED;
+// 	}
 
-	/* unlock option flash registers */
-	int retval = target_write_u32(target, ch32x_get_flash_reg(bank, ch32_FLASH_KEYR), KEY1);
-	if (retval != ERROR_OK)
-		return retval;
-	retval = target_write_u32(target, ch32x_get_flash_reg(bank, ch32_FLASH_KEYR), KEY2);
-	if (retval != ERROR_OK)
-		return retval;
+// 	/* unlock option flash registers */
+// 	int retval = target_write_u32(target, ch32x_get_flash_reg(bank, ch32_FLASH_KEYR), KEY1);
+// 	if (retval != ERROR_OK)
+// 		return retval;
+// 	retval = target_write_u32(target, ch32x_get_flash_reg(bank, ch32_FLASH_KEYR), KEY2);
+// 	if (retval != ERROR_OK)
+// 		return retval;
 
-	/* mass erase flash memory */
-	retval = target_write_u32(target, ch32x_get_flash_reg(bank, ch32_FLASH_CR), FLASH_MER);
-	if (retval != ERROR_OK)
-		return retval;
-	retval = target_write_u32(target, ch32x_get_flash_reg(bank, ch32_FLASH_CR),
-			FLASH_MER | FLASH_STRT);
-	if (retval != ERROR_OK)
-		return retval;
+// 	/* mass erase flash memory */
+// 	retval = target_write_u32(target, ch32x_get_flash_reg(bank, ch32_FLASH_CR), FLASH_MER);
+// 	if (retval != ERROR_OK)
+// 		return retval;
+// 	retval = target_write_u32(target, ch32x_get_flash_reg(bank, ch32_FLASH_CR),
+// 			FLASH_MER | FLASH_STRT);
+// 	if (retval != ERROR_OK)
+// 		return retval;
 
-	retval = ch32x_wait_status_busy(bank, FLASH_ERASE_TIMEOUT);
-	if (retval != ERROR_OK)
-		return retval;
+// 	retval = ch32x_wait_status_busy(bank, FLASH_ERASE_TIMEOUT);
+// 	if (retval != ERROR_OK)
+// 		return retval;
 
-	retval = target_write_u32(target, ch32x_get_flash_reg(bank, ch32_FLASH_CR), FLASH_LOCK);
-	if (retval != ERROR_OK)
-		return retval;
+// 	retval = target_write_u32(target, ch32x_get_flash_reg(bank, ch32_FLASH_CR), FLASH_LOCK);
+// 	if (retval != ERROR_OK)
+// 		return retval;
 
-	return ERROR_OK;
-}
+// 	return ERROR_OK;
+// }
 
 
 static const struct command_registration ch32x_command_handlers[] = {

@@ -23,7 +23,7 @@
 #include <target/algorithm.h>
 extern int wlink_erase(void);
 extern unsigned char riscvchip;
-extern void wlink_reset();
+extern void wlink_reset(void);
 extern void wlink_chip_reset(void);
 extern void wlink_getromram(uint32_t *rom, uint32_t *ram);
 extern int wlink_write(const uint8_t *buffer, uint32_t offset, uint32_t count);
@@ -76,7 +76,7 @@ FLASH_BANK_COMMAND_HANDLER(ch32vx_flash_bank_command)
 
 	return ERROR_OK;
 }
-static int ch32x_protect(struct flash_bank *bank, int set, int first, int last)
+static int ch32x_protect(struct flash_bank *bank, int set, unsigned int first, unsigned int last)
 {
 
 	if ((riscvchip == 1) || (riscvchip == 5) || (riscvchip == 6) || (riscvchip == 9) || (riscvchip ==0x0c)||(riscvchip==0x0e))
@@ -103,7 +103,7 @@ static int ch32x_protect(struct flash_bank *bank, int set, int first, int last)
 	}
 }
 
-static int ch32vx_erase(struct flash_bank *bank, int first, int last)
+static int ch32vx_erase(struct flash_bank *bank, unsigned int first, unsigned int last)
 {
 	if (pageerase)
 		return ERROR_OK;
@@ -238,7 +238,7 @@ static int ch32vx_probe(struct flash_bank *bank)
 	uint32_t ram = 0;
 	int page_size;
 	uint32_t base_address = (uint32_t)wlink_address;
-	uint32_t rid = 0;
+	// uint32_t rid = 0;
 	ch32vx_info->probed = 0;
 
 	/* read ch32 device id register */
