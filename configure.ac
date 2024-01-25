@@ -110,9 +110,12 @@ m4_define([ADAPTER_OPT], [m4_translit(ADAPTER_ARG($1), [_], [-])])
 
 m4_define([USB1_ADAPTERS],
 	[[[ftdi], [MPSSE mode of FTDI based devices], [FTDI]],
+	[[ftdi_cjtag], [cJTAG (OScan1, JScan3) tunneled thru MPSSE], [FTDI_CJTAG]],
 	[[stlink], [ST-Link Programmer], [HLADAPTER_STLINK]],
 	[[ti_icdi], [TI ICDI JTAG Programmer], [HLADAPTER_ICDI]],
 	[[ulink], [Keil ULINK JTAG Programmer], [ULINK]],
+  [[wlinke], [ WLINKE  Programmer], [WLINKE]],
+  [[ch347], [ CH347  Programmer], [CH347]],
 	[[usb_blaster_2], [Altera USB-Blaster II Compatible], [USB_BLASTER_2]],
 	[[ft232r], [Bitbang mode of FT232R based devices], [FT232R]],
 	[[vsllink], [Versaloon-Link JTAG Programmer], [VSLLINK]],
@@ -278,6 +281,12 @@ AC_ARG_ENABLE([jtag_vpi],
   AS_HELP_STRING([--enable-jtag_vpi], [Enable building support for JTAG VPI]),
   [build_jtag_vpi=$enableval], [build_jtag_vpi=no])
 
+AC_ARG_ENABLE([wlinke],
+  AS_HELP_STRING([--enable-wlinke], [Enable building support for WLINKE]),
+  [build_wlinke=$enableval], [build_wlinke=no])
+AC_ARG_ENABLE([ch347],
+  AS_HELP_STRING([--enable-ch347], [Enable building support for CH347]),
+  [build_ch347=$enableval], [build_ch347=no])
 AC_ARG_ENABLE([vdebug],
   AS_HELP_STRING([--enable-vdebug], [Enable building support for Cadence Virtual Debug Interface]),
   [build_vdebug=$enableval], [build_vdebug=no])
@@ -369,7 +378,7 @@ AC_ARG_ENABLE([internal-libjaylink],
 
 AC_ARG_ENABLE([remote-bitbang],
   AS_HELP_STRING([--enable-remote-bitbang], [Enable building support for the Remote Bitbang jtag driver]),
-  [build_remote_bitbang=$enableval], [build_remote_bitbang=no])
+  [build_remote_bitbang=$enableval], [build_remote_bitbang=yes])
 
 AS_CASE(["${host_cpu}"],
   [i?86|x86*], [],
@@ -523,6 +532,18 @@ AS_IF([test "x$build_jtag_vpi" = "xyes"], [
   AC_DEFINE([BUILD_JTAG_VPI], [1], [1 if you want JTAG VPI.])
 ], [
   AC_DEFINE([BUILD_JTAG_VPI], [0], [0 if you don't want JTAG VPI.])
+])
+
+AS_IF([test "x$build_wlinke" = "xyes"], [
+  AC_DEFINE([BUILD_WLINKE], [1], [1 if you want WLINKE.])
+], [
+  AC_DEFINE([BUILD_WLINKE], [0], [0 if you don't want WLINKE.])
+])
+
+AS_IF([test "x$build_ch347" = "xyes"], [
+  AC_DEFINE([BUILD_CH347], [1], [1 if you want CH347.])
+], [
+  AC_DEFINE([BUILD_CH347], [0], [0 if you don't want CH347.])
 ])
 
 AS_IF([test "x$build_vdebug" = "xyes"], [
@@ -713,6 +734,8 @@ AM_CONDITIONAL([BCM2835GPIO], [test "x$build_bcm2835gpio" = "xyes"])
 AM_CONDITIONAL([IMX_GPIO], [test "x$build_imx_gpio" = "xyes"])
 AM_CONDITIONAL([BITBANG], [test "x$build_bitbang" = "xyes"])
 AM_CONDITIONAL([JTAG_VPI], [test "x$build_jtag_vpi" = "xyes"])
+AM_CONDITIONAL([WLINKE], [test "x$build_wlinke" = "xyes" -o "x$build_wlinke" = "xyes"])
+AM_CONDITIONAL([CH347], [test "x$build_ch347" = "xyes" -o "x$build_ch347" = "xyes"])
 AM_CONDITIONAL([VDEBUG], [test "x$build_vdebug" = "xyes"])
 AM_CONDITIONAL([JTAG_DPI], [test "x$build_jtag_dpi" = "xyes"])
 AM_CONDITIONAL([USB_BLASTER_DRIVER], [test "x$enable_usb_blaster" != "xno" -o "x$enable_usb_blaster_2" != "xno"])

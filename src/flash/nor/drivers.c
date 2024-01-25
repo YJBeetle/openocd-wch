@@ -44,6 +44,7 @@ extern const struct flash_driver faux_flash;
 extern const struct flash_driver fm3_flash;
 extern const struct flash_driver fm4_flash;
 extern const struct flash_driver fespi_flash;
+extern const struct flash_driver gd32vf103_flash;
 extern const struct flash_driver jtagspi_flash;
 extern const struct flash_driver kinetis_flash;
 extern const struct flash_driver kinetis_ke_flash;
@@ -89,7 +90,8 @@ extern const struct flash_driver w600_flash;
 extern const struct flash_driver xcf_flash;
 extern const struct flash_driver xmc1xxx_flash;
 extern const struct flash_driver xmc4xxx_flash;
-
+extern const struct flash_driver wch_riscv_flash;
+extern const struct flash_driver wch_arm_flash;
 /**
  * The list of built-in flash drivers.
  * @todo Make this dynamically extendable with loadable modules.
@@ -119,6 +121,7 @@ static const struct flash_driver * const flash_drivers[] = {
 	&fm3_flash,
 	&fm4_flash,
 	&fespi_flash,
+	&gd32vf103_flash,
 	&jtagspi_flash,
 	&kinetis_flash,
 	&kinetis_ke_flash,
@@ -164,6 +167,8 @@ static const struct flash_driver * const flash_drivers[] = {
 	&xmc1xxx_flash,
 	&xmc4xxx_flash,
 	&w600_flash,
+	&wch_riscv_flash,
+	&wch_arm_flash,
 	NULL,
 };
 
